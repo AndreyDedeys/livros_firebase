@@ -1,17 +1,13 @@
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import Notes from '../components/Notes.jsx';
-import { useSelector, useDispatch } from 'react-redux';
-import { selectBooks, eraseBook, toggleRead } from '../store/booksSlice.js';
-
-//import { eraseBookNotes } from '../store/notesSlice.js';
+// import { useSelector, useDispatch } from 'react-redux';
+// import { selectBooks, eraseBook, toggleRead } from '../store/booksSlice.js';
 
 import { useEffect, useState } from 'react';
-import { doc, getDoc, deleteDoc } from 'firebase/firestore'
+import { doc, getDoc, deleteDoc, updateDoc } from 'firebase/firestore'
 import { db} from '../firebase/config.js'
 
 function SingleBookPage() {
-
-  //const dispatch = useDispatch();
 
   const navigate = useNavigate();
 
@@ -33,8 +29,6 @@ function SingleBookPage() {
   const { id } = useParams();
   const [ book, setBook] = useState("")
 
-  //const books = useSelector(selectBooks);
-  //const book = books.filter(book => book.id == id)[0];
 
   useEffect(()=>{
     const fetchBook = async(book_id)=>{
@@ -53,6 +47,18 @@ function SingleBookPage() {
     fetchBook(id)
     }, []  )
 
+    const handleToggleRead = async( book) => {
+       const bookRef = doc(db, "livros", book.id)
+
+       try {
+          await updateDoc(bookRef, {isRead: !book.isRead})
+       } catch (error){
+         console.log("erro ao atualizar", error)
+       }
+
+       setBook({...book, isRead: !book.isRead})
+
+    }
 
 
   return (
@@ -77,7 +83,7 @@ function SingleBookPage() {
                 <p>{book.synopsis}</p>
                 <div className="read-checkbox">
                   <input
-                    onClick={() => { dispatch(toggleRead(book.id)) }}
+                    onClick={() => handleToggleRead(book) }
                     type="checkbox"
                     defaultChecked={book.isRead}
                   />
